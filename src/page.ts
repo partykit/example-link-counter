@@ -26,17 +26,18 @@ export default class PageConnectionsServer implements Party.Server {
 
   /** Handle when the counter party sends an update to a page connection count */
   async handleConnectionsUpdateMessage(request: PageConnectionsUpdate) {
-    const linkConnections =
-      await this.party.storage.get<PageConnectionsSummary>("connections");
+    const connections = await this.party.storage.get<PageConnectionsSummary>(
+      "connections"
+    );
     // if we aren't tracking connections for this page, it means there are no
     // interested subscribers, so we can ignore this message.
-    if (linkConnections) {
+    if (connections) {
       // update connection counts
-      linkConnections[request.id] = request.connectionCount;
-      await this.saveLinkConnections(linkConnections);
+      connections[request.id] = request.connectionCount;
+      await this.saveLinkConnections(connections);
 
       // broadcast to listeners
-      this.party.broadcast(JSON.stringify({ type: "update", linkConnections }));
+      this.party.broadcast(JSON.stringify({ type: "update", connections }));
     }
 
     return new Response("OK");
@@ -54,9 +55,9 @@ export default class PageConnectionsServer implements Party.Server {
 
   async onMessage(data: string, sender: Party.Connection) {
     const message = JSON.parse(data);
-    // when client sends "init" message with links to other pages, subscribe to
+    // when client sends "subscribe" message with links to other pages, subscribe to
     // the connection count changes in any of those pages.
-    if (message.type === "init") {
+    if (message.type === "subscribe") {
       const linkConnections = await this.subscribeToConnectionEventsFromCounter(
         message.links
       );

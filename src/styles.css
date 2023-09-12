@@ -29,3 +29,20 @@ h6 {
 #app {
   padding: 1rem;
 }
+
+a.page-link {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  color: blue;
+  text-transform: capitalize;
+}
+
+a.page-link:after {
+  content: attr(data-count);
+  display: inline-block;
+  margin-left: 0.5rem;
+  background-color: blue;
+  padding: 0px 20px;
+  color: white;
+  border-radius: 9999px;
+}
