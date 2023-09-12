@@ -1,8 +1,12 @@
 {
   "name": "connection-counter",
-  "main": "src/server.ts",
+  "main": "src/main.ts",
   "serve": {
     "path": "public",
     "build": "src/client.ts"
+  },
+  "parties": {
+    "page": "src/page.ts",
+    "counter": "src/counter.ts"
   }
 }
