@@ -12,6 +12,10 @@ const CLEANUP_ALARM_DELAY = 1000 * 60 * 60; // 1 hour
 export default class PageConnectionsServer implements Party.Server {
   constructor(readonly party: Party.Party) {}
 
+  options: Party.ServerOptions = {
+    hibernate: true,
+  };
+
   async onRequest(req: Party.Request) {
     // The counter party updates this party by sending HTTP requests
     if (req.method === "POST") {

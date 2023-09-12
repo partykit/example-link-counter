@@ -36,6 +36,10 @@ const json = (data: any) =>
 export default class CounterServer implements Party.Server {
   constructor(readonly party: Party.Party) {}
 
+  options: Party.ServerOptions = {
+    hibernate: true,
+  };
+
   /** The page party communicates with this party via HTTP requests */
   async onRequest(req: Party.Request) {
     if (req.method === "POST") {
