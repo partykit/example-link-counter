@@ -18,7 +18,11 @@ if (!room) {
 
 // Let's append all the messages we get into this DOM element
 const output = document.getElementById("app") as HTMLDivElement;
-const links = PAGE_LINKS[room!];
+
+document.getElementById("title")!.innerText = `Page ${room.toUpperCase()}`;
+
+const links = PAGE_LINKS[room];
+
 for (const link of links) {
   const a = document.createElement("a");
   a.id = link;
@@ -38,12 +42,8 @@ const conn = new PartySocket({
 
 // Let's listen for when the connection opens
 conn.addEventListener("open", () => {
-  conn.send(
-    JSON.stringify({
-      type: "subscribe",
-      links,
-    })
-  );
+  // subscribe to updates for the links on this page
+  conn.send(JSON.stringify({ type: "subscribe", links }));
 });
 
 // You can even start sending messages before the connection is open!
