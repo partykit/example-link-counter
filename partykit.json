@@ -1,0 +1,8 @@
+{
+  "name": "connection-counter",
+  "main": "src/server.ts",
+  "serve": {
+    "path": "public",
+    "build": "src/client.ts"
+  }
+}
