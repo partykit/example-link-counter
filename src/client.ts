@@ -29,6 +29,7 @@ for (const link of links) {
   a.className = "page-link";
   a.href = `/pages/${link}`;
   a.innerText = `Page ${link}`;
+  a.setAttribute("data-count", "⋯");
   output.appendChild(a);
 }
 

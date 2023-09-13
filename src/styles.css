@@ -42,7 +42,8 @@ a.page-link:after {
   display: inline-block;
   margin-left: 0.5rem;
   background-color: blue;
-  padding: 0px 20px;
   color: white;
   border-radius: 9999px;
+  width: 40px;
+  text-align: center;
 }
