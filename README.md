@@ -31,7 +31,6 @@ This example app consists of two PartyKit parties:
 
 The below diagram shows the data flow between user, the [**page.ts**](#pagets) party, and the [**counter.ts**](#counterts) party.
 
-
 ![Diagram showing the communication between parties](docs/links-communication.png)
 
 ### Storage
