@@ -1,11 +1,51 @@
 ## 🎈 connection-counter
 
-Welcome to the party, pal!
+This is a [Partykit](https://partykit.io) application, demonstrating an advanced use of [multi-party communication](https://docs.partykit.io/guides/using-multiple-parties-per-project/).
 
-This is a [Partykit](https://partykit.io) project, which lets you create real-time collaborative applications with minimal coding effort.
+## Demo
 
-[`server.ts`](./src/server.ts) is the server-side code, which is responsible for handling WebSocket events and HTTP requests. [``](./src/client.ts) is the client-side code, which connects to the server and listens for events.
+The [demo](https://connection-counter.jevakallio.partykit.dev) is a website that shows how many people are currently viewing any of the pages linked from the the current page. 
 
-You can start developing by running `npm run dev` and opening [http://localhost:1999](http://localhost:1999) in your browser. When you're ready, you can deploy your application on to the PartyKit cloud with `npm run deploy`.
+![Demo of two tabs showing links updating](docs/links.gif)
 
-Refer to our docs for more information: https://github.com/partykit/partykit/blob/main/README.md. For more help, reach out to us on [Discord](https://discord.gg/g5uqHQJc3z), [GitHub](https://github.com/partykit/partykit), or [Twitter](https://twitter.com/partykit_io).
+## Architecture
+
+This example app consists of two PartyKit parties:
+
+### counter.ts
+
+- We create one global instance of this party for the whole application
+- Keeps track of current connection counts for all pages in the app
+- When [**page.ts**](#pagets) sends an `"update"` request to this party, it notifies each subscribed [**page.ts**](#pagets) party instance of the latest update count
+- Communicates with the [**page.ts**](#pagets) party via HTTP POST messages
+
+
+### page.ts
+
+- We create a room for each unique page id within the site
+- When a user sends a `"subscribe"` WebSocket message with a list of linked page ids, sends a message to the [**counter.ts**](#counterts) party to subscribe itself to updates
+- When a user connects to this room via WebSockets, it notifies the **counter.ts** room of the current connection count
+
+
+### Party-to-party communication
+
+The below diagram shows the data flow between user, the [**page.ts**](#pagets) party, and the [**counter.ts**](#counterts) party.
+
+
+![Diagram showing the communication between parties](docs/links-communication.png)
+
+### Storage
+
+- [**counter.ts**](#counterts) persists state to party storage, and cleans inactive rooms once per hour.
+- [**page.ts**](#pagets) persists state to party storage, and deletes its storage after one hour of inactivity.
+
+### Further optimization opportunities
+
+- [**page.ts**](#pagets) sends a subscription message on every connection, even when it's already subscribed. This is useful for when page links update, but causes unnecessary chattiness.
+
+
+
+
+
+
+
