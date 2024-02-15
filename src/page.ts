@@ -10,7 +10,7 @@ const GLOBAL_COUNTER_ID = "all-pages";
 const CLEANUP_ALARM_DELAY = 1000 * 60 * 60; // 1 hour
 
 export default class PageConnectionsServer implements Party.Server {
-  constructor(readonly party: Party.Party) {}
+  constructor(readonly room: Party.Room) {}
 
   options: Party.ServerOptions = {
     hibernate: true,
@@ -30,7 +30,7 @@ export default class PageConnectionsServer implements Party.Server {
 
   /** Handle when the counter party sends an update to a page connection count */
   async handleConnectionsUpdateMessage(request: PageConnectionsUpdate) {
-    const connections = await this.party.storage.get<PageConnectionsSummary>(
+    const connections = await this.room.storage.get<PageConnectionsSummary>(
       "connections"
     );
     // if we aren't tracking connections for this page, it means there are no
@@ -41,7 +41,7 @@ export default class PageConnectionsServer implements Party.Server {
       await this.saveLinkConnections(connections);
 
       // broadcast to listeners
-      this.party.broadcast(JSON.stringify({ type: "update", connections }));
+      this.room.broadcast(JSON.stringify({ type: "update", connections }));
     }
 
     return new Response("OK");
@@ -75,28 +75,28 @@ export default class PageConnectionsServer implements Party.Server {
 
   async onAlarm() {
     // if we don't have any subscribers, purge the cache, otherwise try again later
-    if ([...this.party.getConnections()].length === 0) {
-      await this.party.storage.delete("connections");
+    if ([...this.room.getConnections()].length === 0) {
+      await this.room.storage.delete("connections");
     } else {
-      await this.party.storage.setAlarm(Date.now() + CLEANUP_ALARM_DELAY);
+      await this.room.storage.setAlarm(Date.now() + CLEANUP_ALARM_DELAY);
     }
   }
 
   async saveLinkConnections(linkConnections: PageConnectionsSummary) {
     // save connections locally
-    await this.party.storage.put("connections", linkConnections);
+    await this.room.storage.put("connections", linkConnections);
     // purge cache after a period of inactivity
-    await this.party.storage.setAlarm(Date.now() + CLEANUP_ALARM_DELAY);
+    await this.room.storage.setAlarm(Date.now() + CLEANUP_ALARM_DELAY);
   }
 
   async subscribeToConnectionEventsFromCounter(links: string[]) {
-    const request = await this.party.context.parties.counter
+    const request = await this.room.context.parties.counter
       .get(GLOBAL_COUNTER_ID)
       .fetch({
         method: "POST",
         body: JSON.stringify(<PageConnectionsSubscribe>{
           action: "subscribe",
-          subscriberId: this.party.id,
+          subscriberId: this.room.id,
           subscribeToRoomIds: links,
         }),
       });
@@ -108,12 +108,12 @@ export default class PageConnectionsServer implements Party.Server {
   }
 
   async sendConnectionCountUpdateToCounter() {
-    const connectionCount = [...this.party.getConnections()].length;
-    await this.party.context.parties.counter.get(GLOBAL_COUNTER_ID).fetch({
+    const connectionCount = [...this.room.getConnections()].length;
+    await this.room.context.parties.counter.get(GLOBAL_COUNTER_ID).fetch({
       method: "POST",
       body: JSON.stringify({
         action: "update",
-        id: this.party.id,
+        id: this.room.id,
         connectionCount,
       } satisfies PageConnectionsUpdate),
     });

@@ -34,7 +34,7 @@ const json = (data: any) =>
  * The Page party communicates with this party via HTTP requests
  **/
 export default class CounterServer implements Party.Server {
-  constructor(readonly party: Party.Party) {}
+  constructor(readonly room: Party.Room) {}
 
   options: Party.ServerOptions = {
     hibernate: true,
@@ -56,17 +56,17 @@ export default class CounterServer implements Party.Server {
   async onAlarm() {
     // let's do a little cleanup. if page currently doesn't have any listeners,
     // we can safely delete it, since it will get recreated when a new listener joins
-    const allPages = await this.party.storage.list<PageState>();
+    const allPages = await this.room.storage.list<PageState>();
     for (const [pageId, pageState] of allPages) {
       if (pageState.connectionCount === 0) {
-        await this.party.storage.delete(pageId);
+        await this.room.storage.delete(pageId);
       }
     }
 
     // if there are pages we are still tracking, let's clean up again after the interval
-    const remainingPages = await this.party.storage.list<PageState>();
+    const remainingPages = await this.room.storage.list<PageState>();
     if (remainingPages.size > 0) {
-      await this.party.storage.setAlarm(Date.now() + CLEANUP_ALARM_DELAY);
+      await this.room.storage.setAlarm(Date.now() + CLEANUP_ALARM_DELAY);
     }
   }
 
@@ -105,7 +105,7 @@ export default class CounterServer implements Party.Server {
     // notify all subscribers of the new connection count
     await Promise.all(
       roomState.subscriberIds.map((subscriberId) =>
-        this.party.context.parties.page.get(subscriberId).fetch({
+        this.room.context.parties.page.get(subscriberId).fetch({
           method: "POST",
           body: update,
         })
@@ -117,7 +117,7 @@ export default class CounterServer implements Party.Server {
 
   /** Utility for getting (or creating) the state for a given page */
   async getRoomState(pageId: string) {
-    const state = await this.party.storage.get<PageState>(pageId);
+    const state = await this.room.storage.get<PageState>(pageId);
     return (
       state ?? {
         id: pageId,
@@ -134,10 +134,10 @@ export default class CounterServer implements Party.Server {
   ) {
     const oldState = await this.getRoomState(pageId);
     const newState = update(oldState);
-    await this.party.storage.put(pageId, newState);
+    await this.room.storage.put(pageId, newState);
 
-    if (!(await this.party.storage.getAlarm())) {
-      await this.party.storage.setAlarm(Date.now() + CLEANUP_ALARM_DELAY);
+    if (!(await this.room.storage.getAlarm())) {
+      await this.room.storage.setAlarm(Date.now() + CLEANUP_ALARM_DELAY);
     }
     return newState;
   }

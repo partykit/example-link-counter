@@ -1,5 +1,6 @@
 {
   "name": "connection-counter",
+  "compatibilityDate": "2024-02-15",
   "main": "src/main.ts",
   "serve": {
     "path": "public",
